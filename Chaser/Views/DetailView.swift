@@ -26,6 +26,10 @@ struct DetailView: View {
         }
         .navigationTitle(recipe.name)
         .toolbar {
+            Button(action: shareRecipe) {
+                Image(systemName: "square.and.arrow.up")
+            }
+            .accessibilityLabel("Share recipes")
             Button("Edit") {
                 isPresentingEditView = true
                 editingRecipe = recipe
@@ -48,6 +52,24 @@ struct DetailView: View {
                             }
                         }
                     }
+            }
+        }
+    }
+    
+    private func shareRecipe() {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        
+        if let jsonData = try? encoder.encode([recipe]),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("Recipes-\(recipe.id)-\(UUID()).json")
+            try? jsonString.write(to: tempURL, atomically: true, encoding: .utf8)
+            
+            let activityViewController = UIActivityViewController(activityItems: [tempURL], applicationActivities: nil)
+            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let rootViewController = scene.windows.first?.rootViewController {
+                rootViewController.present(activityViewController, animated: true, completion: nil)
             }
         }
     }

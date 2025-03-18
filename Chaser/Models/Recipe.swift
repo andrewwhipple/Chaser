@@ -9,8 +9,13 @@ import Foundation
 import SwiftData
 
 
+
 @Model
-final class Recipe {
+final class Recipe: Codable {
+    enum CodingKeys: String, CodingKey {
+        case id, createdAt, updatedAt, name, ingredients, instructions
+    }
+    
     @Attribute(.unique) var id: UUID
     var createdAt: Date
     var updatedAt: Date
@@ -27,7 +32,36 @@ final class Recipe {
         self.ingredients = ingredients
         self.instructions = instructions
     }
+    
+    convenience init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let id = try container.decode(UUID.self, forKey: .id)
+        let createdAt = try container.decode(Date.self, forKey: .createdAt)
+        let updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        let name = try container.decode(String.self, forKey: .name)
+        let ingredients = try container.decode([Ingredient].self, forKey: .ingredients)
+        let instructions = try container.decode(String.self, forKey: .instructions)
+        self.init(name: name, ingredients: ingredients, instructions: instructions)
+        self.id = id
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encode(name, forKey: .name)
+        try container.encode(ingredients, forKey: .ingredients)
+        try container.encode(instructions, forKey: .instructions)
+    }
+    
+    static func fromFreeformText(input: String) -> Recipe {        
+        return Recipe.sampleRecipes[1]
+    }
 }
+
 
 extension Recipe {
     static var emptyRecipe: Recipe {

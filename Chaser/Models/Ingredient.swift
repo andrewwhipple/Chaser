@@ -11,20 +11,50 @@ import SwiftData
 
 
 @Model
-final class Ingredient: Identifiable, CustomStringConvertible {
+final class Ingredient: Identifiable, Codable {
+    enum CodingKeys: String, CodingKey {
+        case id, name, unit, amount
+    }
+    
     var id: UUID
     var name: String
     var unit: Unit
     var amount: Double
+
+    init(name: String, unit: Unit, amount: Double) {
+        self.id = UUID()
+        self.name = name
+        self.unit = unit
+        self.amount = amount
+    }
     
-    
+    convenience init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let id = try container.decode(UUID.self, forKey: .id)
+        let name = try container.decode(String.self, forKey: .name)
+        let unit = try container.decode(Unit.self, forKey: .unit)
+        let amount = try container.decode(Double.self, forKey: .amount)
+        self.init(name: name, unit: unit, amount: amount)
+        self.id = id
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(unit, forKey: .unit)
+        try container.encode(amount, forKey: .amount)
+    }
+}
+
+extension Ingredient:  CustomStringConvertible{
     private var convertedAmount: String {
-        var floor = floor(amount)
+        let floor = floor(amount)
         var floorString = ""
         if floor > 0 {
             floorString = "\(Int(floor))"
         }
-        var remainder = amount - floor
+        let remainder = amount - floor
         var remainderString = ""
         switch remainder {
         case 0:
@@ -61,19 +91,12 @@ final class Ingredient: Identifiable, CustomStringConvertible {
         }
         
         return "\(printedAmount)\(printedUnit)\(name)"
-        
-    }
-    
-    init(name: String, unit: Unit, amount: Double) {
-        self.id = UUID()
-        self.name = name
-        self.unit = unit
-        self.amount = amount
     }
 }
 
+
 extension Ingredient {
-    enum Unit: String, CaseIterable, Codable{
+    enum Unit: String, CaseIterable, Codable {
         case ounce = "ounce"
         case milliliter = "milliliter"
         case dash = "dash"
@@ -85,9 +108,72 @@ extension Ingredient {
         case drop = "drop"
         case pinch = "pinch"
         case null = ""
+        
+        init(rawValue: String) {
+            switch rawValue.lowercased() {
+            case "oz", "ounce", "ounces", "fluid ounce", "fluid oz", "fluid ounces":
+                self = .ounce
+            case "ml", "milliliter", "milliters":
+                self = .milliliter
+            case "tbsp", "tablespoon", "tablespoons":
+                self = .tablespoon
+            case "tsp", "teaspoon", "teaspoons":
+                self = .teaspoon
+            case "l", "liter", "liters":
+                self = .liter
+            case "dash", "dashes":
+                self = .dash
+            case "pinch", "pinches":
+                self = .pinch
+            case "drop", "drops":
+                self = .drop
+            case "cup", "cups":
+                self = .cup
+            case "pint", "pints":
+                self = .pint
+            default:
+                self = .null
+            }
+        }
     }
     
     static var emptyIngredient: Ingredient {
         Ingredient(name: "", unit: Ingredient.Unit.null, amount: 0)
     }
 }
+
+import Foundation
+
+struct PartialIngredient: Codable {
+    enum CodingKeys: String, CodingKey {
+        case name, unit, amount
+    }
+    
+    var name: String
+    var unit: Ingredient.Unit
+    var amount: Double
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        name = try container.decode(String.self, forKey: .name)
+        unit = try container.decode(Ingredient.Unit.self, forKey: .unit)
+        
+        if let doubleValue = try? container.decode(Double.self, forKey: .amount) {
+            amount = doubleValue
+        } else if let stringValue = try? container.decode(String.self, forKey: .amount),
+                  let doubleFromString = Double(stringValue) {
+            amount = doubleFromString
+        } else {
+            throw DecodingError.dataCorruptedError(forKey: .amount, in: container, debugDescription: "Amount is neither a Double nor a valid String representation of a Double")
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(unit, forKey: .unit)
+        try container.encode(amount, forKey: .amount)
+    }
+}
+

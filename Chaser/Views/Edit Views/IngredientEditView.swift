@@ -21,8 +21,6 @@ struct IngredientEditView: View {
         Form {
             TextField("Ingredient name", text: $ingredient.name)
             HStack {
-                // TODO fix that it doesnt sync back from the binding to amount
-                
                 Picker("Amount", selection: $amountMajor) {
                     ForEach(0..<11, id: \.self) { i in
                         Text("\(i)").tag(Double(i))
@@ -47,9 +45,18 @@ struct IngredientEditView: View {
                 ingredient.amount = totalAmount
             }
             Picker("", selection: $ingredient.unit) {
+                Text("").tag(Ingredient.Unit.null)
                 Text("oz").tag(Ingredient.Unit.ounce)
                 Text("ml").tag(Ingredient.Unit.milliliter)
                 Text("dash").tag(Ingredient.Unit.dash)
+                Text("drop").tag(Ingredient.Unit.drop)
+                Text("pinch").tag(Ingredient.Unit.pinch)
+                Text("tsp").tag(Ingredient.Unit.teaspoon)
+                Text("tbsp").tag(Ingredient.Unit.tablespoon)
+                Text("cup").tag(Ingredient.Unit.cup)
+                Text("pint").tag(Ingredient.Unit.pint)
+                Text("L").tag(Ingredient.Unit.liter)
+                
             }
         }
         .pickerStyle(MenuPickerStyle())
