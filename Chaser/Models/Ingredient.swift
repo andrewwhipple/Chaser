@@ -111,7 +111,7 @@ extension Ingredient {
         
         init(rawValue: String) {
             switch rawValue.lowercased() {
-            case "oz", "ounce", "ounces", "fluid ounce", "fluid oz", "fluid ounces":
+            case "oz", "ounce", "ounces", "fluid ounce", "fluid oz", "fluid ounces", "oz.":
                 self = .ounce
             case "ml", "milliliter", "milliters":
                 self = .milliliter
