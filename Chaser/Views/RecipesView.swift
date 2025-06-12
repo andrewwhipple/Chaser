@@ -77,6 +77,9 @@ struct RecipesView: View {
         .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase == .inactive { saveAction() }
         }
+        .onChange(of: isPresentingNewRecipeView) {
+            saveAction()
+        }
     }
     
     private func deleteRecipe(at offsets: IndexSet) {
