@@ -27,6 +27,8 @@ struct DetailEditView: View {
     @State private var parsingProgress = 0
     @State private var isParsing = false
     @State private var animatePulse = false
+    
+    @AppStorage("isAutomaticParsingSectionExpanded") private var isAutomaticParsingSectionExpanded = true
 
     
     private func editIngredientsViewTitle(title: String) -> String {
@@ -84,47 +86,87 @@ struct DetailEditView: View {
             Section(header: Text("Instructions")) {
                 TextField("Instructions", text: $recipe.instructions, axis: .vertical).lineLimit(10)
             }
-            Section(header: Text("Automatic parsing")) {
-                HStack {
-                    //Button(action: {
-                    //    isPresentingFreeformInputEditView = true
-                    //}) {
-                    //    Text("Parse from text")
-                    //}
-                    //Spacer()
-                    PhotosPicker(selection: $photoItem) {
-                        Text("Import from image")
-                    }.disabled(recipeParser.instance?.loaded == false)
-                }.task(id: photoItem) {
-                    if let photoData = try? await photoItem?.loadTransferable(type: Data.self) {
-                        let photoUIImage = UIImage(data: photoData)!
-                        recognizeText(from: photoUIImage) { text in
-                            if let text = text {
-                                if !text.isEmpty {
-                                    Task {
-                                        if let parser = recipeParser.instance {
-                                            isParsing = true
-                                            parsingProgress = 0
-                                            recipe.name = try await parser.parseName(recipeText: text)
-                                            parsingProgress += 1
-                                            recipe.ingredients = try await parser.parseIngredients(recipeText: text)
-                                            parsingProgress += 1
-                                            recipe.instructions = try await parser.parseInstructions(recipeText: text)
-                                            parsingProgress += 1
-                                            isParsing = false
-                                            
-                                            parsingProgress = 0
+            Section {
+                DisclosureGroup("Automatic parsing", isExpanded: $isAutomaticParsingSectionExpanded) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Button(action: {
+                            isPresentingFreeformInputEditView = true
+                        }) {
+                            HStack {
+                                Image(systemName: "text.alignleft")
+                                Text("Import from text")
+                                Spacer()
+                            }
+                            .padding()
+                        }
+                        .disabled(recipeParser.instance?.loaded == false)
+                        .buttonStyle(.bordered)
+                        
+                        PhotosPicker(selection: $photoItem) {
+                            HStack {
+                                Image(systemName: "photo")
+                                Text("Import from image")
+                                Spacer()
+                            }
+                            .padding()
+                        }
+                        .disabled(recipeParser.instance?.loaded == false)
+                        .buttonStyle(.bordered)
+                    }
+                    .task(id: photoItem) {
+                        if let photoData = try? await photoItem?.loadTransferable(type: Data.self) {
+                            let photoUIImage = UIImage(data: photoData)!
+                            recognizeText(from: photoUIImage) { text in
+                                if let text = text {
+                                    if !text.isEmpty {
+                                        Task {
+                                            if let parser = recipeParser.instance {
+                                                isParsing = true
+                                                parsingProgress = 0
+                                                recipe = try await parser.parse(recipetText: text)
+                                                parsingProgress = 3
+                                                isParsing = false
+                                                
+                                                parsingProgress = 0
+                                            }
+                                            photoItem = nil
                                         }
-                                        photoItem = nil
                                     }
+                                } else {
+                                    print("Failed to recognize text.")
+                                    photoItem = nil
                                 }
-                            } else {
-                                print("Failed to recognize text.")
-                                photoItem = nil
                             }
                         }
                     }
+                    if recipeParser.instance?.loaded == false {
+                        switch recipeParser.instance?.availability {
+                        case .appleIntelligenceNotEnabled:
+                            Text("To use automatic parsing, please enable Apple Intelligence in Settings. It may take up to a few minutes for parsing to be available after enabling.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        case .deviceNotEligible:
+                            Text("Apple Intelligence is not available on this device.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        case .modelNotReady:
+                            Text("Automatic parsing not ready yet; please wait or try again.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        case .unavailable:
+                            Text("Automatic parsing is unavailable due to an unknown error.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        default:
+                            EmptyView()
+                        }
+                    }
                 }
+            }
+        }
+        .onAppear {
+            Task {
+                await recipeParser.checkAndReload()
             }
         }
         .sheet(isPresented: $isPresentingEditIngredientsView) {
@@ -152,7 +194,7 @@ struct DetailEditView: View {
         .sheet(isPresented: $isPresentingFreeformInputEditView) {
             NavigationStack {
                 FreeformInputEditView(inputText: $editingFreeformText)
-                    .navigationTitle("Freeform text input")
+                    .navigationTitle("Import from text")
                     .toolbar {
                         ToolbarItemGroup(placement: .navigationBarTrailing) {
                             Button("Cancel") {
@@ -167,12 +209,8 @@ struct DetailEditView: View {
                                         if let parser = recipeParser.instance {
                                             isParsing = true
                                             parsingProgress = 0
-                                            recipe.name = try await parser.parseName(recipeText: editingFreeformText)
-                                            parsingProgress += 1
-                                            recipe.ingredients = try await parser.parseIngredients(recipeText: editingFreeformText)
-                                            parsingProgress += 1
-                                            recipe.instructions = try await parser.parseInstructions(recipeText: editingFreeformText)
-                                            parsingProgress += 1
+                                            recipe = try await parser.parse(recipetText: editingFreeformText)
+                                            parsingProgress = 3
                                             isParsing = false
                                             
                                             parsingProgress = 0

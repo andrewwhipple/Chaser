@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import FoundationModels
 
 
 
@@ -99,6 +100,34 @@ extension Recipe {
                 instructions: "Shake, serve on the rocks"
             )
         ]
+    }
+}
+
+
+
+
+@Generable()
+struct GenerableRecipe {
+    @Guide(description: "The name of the cocktail recipe")
+    var name: String
+    var ingredients: [GenerableIngredient]
+    @Guide(description: "Text for instructions on how to make the cocktail")
+    var instructions: String
+    
+    func toRecipe() -> Recipe {
+        let recipeIngredients = ingredients.map { generableIngredient in
+            Ingredient(
+                name: generableIngredient.name,
+                unit: Ingredient.Unit(rawValue: generableIngredient.unit),
+                amount: generableIngredient.amount
+            )
+        }
+        
+        return Recipe(
+            name: name,
+            ingredients: recipeIngredients,
+            instructions: instructions
+        )
     }
 }
 

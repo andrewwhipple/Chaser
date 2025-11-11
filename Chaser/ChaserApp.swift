@@ -15,6 +15,7 @@ struct ChaserApp: App {
     @StateObject var recipeParser: RecipeParserWrapper
     
     @State private var importedFileURL: URL?
+    @Environment(\.scenePhase) private var scenePhase
     
     init() {
         _recipeParser = StateObject(wrappedValue: RecipeParserWrapper())
@@ -57,6 +58,13 @@ struct ChaserApp: App {
                 ErrorView(errorWrapper: wrapper)
             }.onOpenURL { url in
                 handleIncomingFile(url: url)
+            }
+            .onChange(of: scenePhase) { oldPhase, newPhase in
+                if newPhase == .active {
+                    Task {
+                        await recipeParser.checkAndReload()
+                    }
+                }
             }
         }
         .modelContainer(sharedModelContainer)
@@ -107,5 +115,20 @@ final class RecipeParserWrapper: ObservableObject {
         } catch {
             print("Failed to initialize RecipeParser: \(error)")
         }
+    }
+    
+    @MainActor
+    func checkAndReload() async {
+        if instance?.loaded == true {
+            return
+        }
+        
+        if instance?.availability == .deviceNotEligible {
+            return
+        }
+        
+        // Attempt to reload for any other reason (modelNotReady, appleIntelligenceNotEnabled, unavailable, or nil)
+        print("Attempting to reload RecipeParser...")
+        await initializeParser()
     }
 }
