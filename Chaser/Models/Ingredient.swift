@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import FoundationModels
 import SwiftData
 
 
@@ -177,3 +178,11 @@ struct PartialIngredient: Codable {
     }
 }
 
+@Generable()
+struct GenerableIngredient {
+    @Guide(description: "Name of the ingredient")
+    var name: String
+    @Guide(description: "The unit for the ingredient (ex: ounce, ml, dash, barspoon, etc)")
+    var unit: String
+    var amount: Double
+}

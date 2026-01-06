@@ -6,14 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		E4BD21E22D8660E600F279B5 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = E4BD21E12D8660E600F279B5 /* MLXLLM */; };
-		E4BD21E42D8660E600F279B5 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = E4BD21E32D8660E600F279B5 /* MLXLMCommon */; };
-		E4BD21E62D8660E600F279B5 /* MLXMNIST in Frameworks */ = {isa = PBXBuildFile; productRef = E4BD21E52D8660E600F279B5 /* MLXMNIST */; };
-		E4BD21E82D8660E600F279B5 /* MLXVLM in Frameworks */ = {isa = PBXBuildFile; productRef = E4BD21E72D8660E600F279B5 /* MLXVLM */; };
-		E4BD21EA2D8660E600F279B5 /* StableDiffusion in Frameworks */ = {isa = PBXBuildFile; productRef = E4BD21E92D8660E600F279B5 /* StableDiffusion */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		E46904172D19E27800E279F7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -73,11 +65,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E4BD21E62D8660E600F279B5 /* MLXMNIST in Frameworks */,
-				E4BD21E42D8660E600F279B5 /* MLXLMCommon in Frameworks */,
-				E4BD21E82D8660E600F279B5 /* MLXVLM in Frameworks */,
-				E4BD21E22D8660E600F279B5 /* MLXLLM in Frameworks */,
-				E4BD21EA2D8660E600F279B5 /* StableDiffusion in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -138,11 +125,6 @@
 			);
 			name = Chaser;
 			packageProductDependencies = (
-				E4BD21E12D8660E600F279B5 /* MLXLLM */,
-				E4BD21E32D8660E600F279B5 /* MLXLMCommon */,
-				E4BD21E52D8660E600F279B5 /* MLXMNIST */,
-				E4BD21E72D8660E600F279B5 /* MLXVLM */,
-				E4BD21E92D8660E600F279B5 /* StableDiffusion */,
 			);
 			productName = Chaser;
 			productReference = E46904022D19E27700E279F7 /* Chaser.app */;
@@ -227,7 +209,6 @@
 			mainGroup = E46903F92D19E27700E279F7;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				E4BD21E02D8660E600F279B5 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E46904032D19E27700E279F7 /* Products */;
@@ -317,11 +298,13 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Chaser/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -350,11 +333,13 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Chaser/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -600,45 +585,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		E4BD21E02D8660E600F279B5 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/ml-explore/mlx-swift-examples";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.21.2;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		E4BD21E12D8660E600F279B5 /* MLXLLM */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E4BD21E02D8660E600F279B5 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */;
-			productName = MLXLLM;
-		};
-		E4BD21E32D8660E600F279B5 /* MLXLMCommon */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E4BD21E02D8660E600F279B5 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */;
-			productName = MLXLMCommon;
-		};
-		E4BD21E52D8660E600F279B5 /* MLXMNIST */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E4BD21E02D8660E600F279B5 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */;
-			productName = MLXMNIST;
-		};
-		E4BD21E72D8660E600F279B5 /* MLXVLM */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E4BD21E02D8660E600F279B5 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */;
-			productName = MLXVLM;
-		};
-		E4BD21E92D8660E600F279B5 /* StableDiffusion */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E4BD21E02D8660E600F279B5 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */;
-			productName = StableDiffusion;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = E46903FA2D19E27700E279F7 /* Project object */;
 }
