@@ -12,6 +12,11 @@ struct NewRecipeView: View {
     @Binding var recipes: [Recipe]
     @Binding var isPresentingNewRecipeView: Bool
     
+    private var isValidRecipe: Bool {
+        !newRecipe.name.trimmingCharacters(in: .whitespaces).isEmpty &&
+        !newRecipe.ingredients.isEmpty
+    }
+    
     var body: some View {
         NavigationStack {
             DetailEditView(recipe: $newRecipe)
@@ -26,6 +31,7 @@ struct NewRecipeView: View {
                             recipes.append(newRecipe)
                             isPresentingNewRecipeView = false
                         }
+                        .disabled(!isValidRecipe)
                     }
                 }
         }

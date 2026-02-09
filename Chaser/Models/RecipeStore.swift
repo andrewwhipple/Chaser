@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import OSLog
 
 @MainActor
 class RecipeStore: ObservableObject {
@@ -23,9 +24,11 @@ class RecipeStore: ObservableObject {
         let task = Task<[Recipe], Error> {
             let fileURL = try Self.fileURL()
             guard let data = try? Data(contentsOf: fileURL) else {
+                Logger.storage.info("No existing recipe data found, starting with empty collection")
                 return []
             }
             let recipes = try JSONDecoder().decode([Recipe].self, from: data)
+            Logger.storage.info("Loaded \(recipes.count) recipe(s) from storage")
             return recipes
         }
         let recipes = try await task.value
@@ -37,6 +40,7 @@ class RecipeStore: ObservableObject {
             let data = try JSONEncoder().encode(recipes)
             let outfile = try Self.fileURL()
             try data.write(to: outfile)
+            Logger.storage.info("Saved \(recipes.count) recipe(s) to storage")
         }
         
         _ = try await task.value

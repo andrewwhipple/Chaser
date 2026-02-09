@@ -14,7 +14,7 @@ import FoundationModels
 @Model
 final class Recipe: Codable {
     enum CodingKeys: String, CodingKey {
-        case id, createdAt, updatedAt, name, ingredients, instructions
+        case id, createdAt, updatedAt, name, ingredients, instructions, tags, sourceRecipeId
     }
     
     @Attribute(.unique) var id: UUID
@@ -24,14 +24,18 @@ final class Recipe: Codable {
     var name: String
     var ingredients: Array<Ingredient>
     var instructions: String
+    var tags: Array<String>
+    var sourceRecipeId: UUID? // Tracks if this recipe was added from the sample library
     
-    init(name: String, ingredients: Array<Ingredient>, instructions: String) {
+    init(name: String, ingredients: Array<Ingredient>, instructions: String, tags: Array<String> = [], sourceRecipeId: UUID? = nil) {
         self.id = UUID()
         self.createdAt = Date()
         self.updatedAt = Date()
         self.name = name
         self.ingredients = ingredients
         self.instructions = instructions
+        self.tags = tags
+        self.sourceRecipeId = sourceRecipeId
     }
     
     convenience init(from decoder: Decoder) throws {
@@ -42,7 +46,9 @@ final class Recipe: Codable {
         let name = try container.decode(String.self, forKey: .name)
         let ingredients = try container.decode([Ingredient].self, forKey: .ingredients)
         let instructions = try container.decode(String.self, forKey: .instructions)
-        self.init(name: name, ingredients: ingredients, instructions: instructions)
+        let tags = try? container.decode([String].self, forKey: .tags)
+        let sourceRecipeId = try? container.decode(UUID.self, forKey: .sourceRecipeId)
+        self.init(name: name, ingredients: ingredients, instructions: instructions, tags: tags ?? [String](), sourceRecipeId: sourceRecipeId)
         self.id = id
         self.createdAt = createdAt
         self.updatedAt = updatedAt
@@ -56,6 +62,8 @@ final class Recipe: Codable {
         try container.encode(name, forKey: .name)
         try container.encode(ingredients, forKey: .ingredients)
         try container.encode(instructions, forKey: .instructions)
+        try container.encode(tags, forKey: .tags)
+        try container.encodeIfPresent(sourceRecipeId, forKey: .sourceRecipeId)
     }
     
     static func fromFreeformText(input: String) -> Recipe {        

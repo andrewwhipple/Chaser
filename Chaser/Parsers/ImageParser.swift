@@ -28,7 +28,7 @@ func recognizeText(from image: UIImage, completion: @escaping (String?) -> Void)
     do {
         try requestHandler.perform([request])
     } catch {
-        print("Error performing OCR: \(error)")
+        // OCR failed, return nil to indicate failure
         completion(nil)
     }
 }

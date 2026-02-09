@@ -9,14 +9,6 @@ import SwiftUI
 
 struct CardView: View {
     let recipe: Recipe
-    
-    private func ingredientChip(_ ingredient: String) -> some View {
-        Text(ingredient)
-            .padding(5)
-            .foregroundColor(.secondary)
-            .background(Color.secondary.opacity(0.2))
-            .cornerRadius(5)
-    }
 
     private func getIngredientChips(ingredients: [Ingredient]) -> some View {
         let possibleIngredients = ["Rum", "Vodka", "Gin", "Tequila", "Mezcal", "Whisky", "Whiskey", "Scotch", "Rye", "Bourbon"]
@@ -32,7 +24,10 @@ struct CardView: View {
         
         let result = HStack {
             ForEach(presentIngredients, id: \.self) { ingredient in
-                ingredientChip(ingredient)
+                Chip(text: ingredient)
+            }
+            ForEach(recipe.tags, id: \.self) { tag in
+                Chip(text: tag)
             }
         }
         

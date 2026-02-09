@@ -23,17 +23,24 @@ struct DetailView: View {
             Section(header: Text("Instructions")) {
                 Text(recipe.instructions)
             }
+            Section(header: Text("Tags")) {
+                ForEach(recipe.tags, id: \.self) { tag in
+                    Chip(text: tag)
+                }
+            }
         }
         .navigationTitle(recipe.name)
         .toolbar {
             Button(action: shareRecipe) {
                 Image(systemName: "square.and.arrow.up")
             }
-            .accessibilityLabel("Share recipes")
+            .accessibilityLabel("Share \(recipe.name)")
+            .accessibilityHint("Export this recipe as a JSON file")
             Button("Edit") {
                 isPresentingEditView = true
                 editingRecipe = recipe
             }
+            .accessibilityHint("Edit recipe details, ingredients, and instructions")
         }
         .sheet(isPresented: $isPresentingEditView) {
             NavigationStack {
@@ -48,6 +55,9 @@ struct DetailView: View {
                         ToolbarItem(placement: .confirmationAction) {
                             Button("Done") {
                                 isPresentingEditView = false
+                                // Trim whitespace from recipe name
+                                editingRecipe.name = editingRecipe.name.trimmingCharacters(in: .whitespaces)
+                                editingRecipe.updatedAt = Date()
                                 recipe = editingRecipe
                             }
                         }

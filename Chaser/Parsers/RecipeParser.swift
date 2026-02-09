@@ -1,5 +1,6 @@
 import Foundation
 import FoundationModels
+import OSLog
 
 enum ParserAvailability {
     case available
@@ -21,24 +22,24 @@ class RecipeParser: ObservableObject {
         case .available:
             loaded = true
             availability = .available
-            print("Model loaded")
+            Logger.parsing.info("Recipe parser loaded successfully")
         case .unavailable(.appleIntelligenceNotEnabled):
             availability = .appleIntelligenceNotEnabled
-            print("Turn on apple intelligence")
+            Logger.parsing.info("Apple Intelligence not enabled")
         case .unavailable(.deviceNotEligible):
             availability = .deviceNotEligible
-            print("Device not eligible")
+            Logger.parsing.info("Device not eligible for Apple Intelligence")
         case .unavailable(.modelNotReady):
             availability = .modelNotReady
-            print("Model not ready")
+            Logger.parsing.info("Model not ready")
         case .unavailable:
             availability = .unavailable
-            print("Model unavailble for unknown reason")
+            Logger.parsing.warning("Model unavailable for unknown reason")
         }
     }
     
     
-    func parse(recipetText: String) async throws -> Recipe {
+    func parse(recipeText: String) async throws -> Recipe {
         if loaded {
             let systemPrompt = """
                 You are a simple recipe parser who will be given free-form text of a recipe
@@ -50,7 +51,7 @@ class RecipeParser: ObservableObject {
             """
             let session = LanguageModelSession(instructions: systemPrompt)
             
-            let response = try await session.respond(to: recipetText, generating: GenerableRecipe.self)
+            let response = try await session.respond(to: recipeText, generating: GenerableRecipe.self)
             return response.content.toRecipe()
         }
         return Recipe.emptyRecipe

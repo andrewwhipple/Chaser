@@ -64,12 +64,16 @@ extension Ingredient:  CustomStringConvertible{
             remainderString = "⅛"
         case 0.25:
             remainderString = "¼"
+        case 0.33:
+            remainderString = "⅓"
         case 0.375:
             remainderString = "⅜"
         case 0.5:
             remainderString = "½"
         case 0.625:
             remainderString = "⅝"
+        case 0.66:
+            remainderString = "⅔"
         case 0.75:
             remainderString = "¾"
         case 0.875:
@@ -108,6 +112,7 @@ extension Ingredient {
         case liter = "liter"
         case drop = "drop"
         case pinch = "pinch"
+        case barspoon = "barspoon"
         case null = ""
         
         init(rawValue: String) {
@@ -132,6 +137,8 @@ extension Ingredient {
                 self = .cup
             case "pint", "pints":
                 self = .pint
+            case "barspoon", "barspoons", "spoon", "spoons":
+                self = .barspoon
             default:
                 self = .null
             }

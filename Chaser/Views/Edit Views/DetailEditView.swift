@@ -14,9 +14,12 @@ struct DetailEditView: View {
     
     @State private var isPresentingEditIngredientsView = false
     @State private var isPresentingFreeformInputEditView = false
+    @State private var isPresentingEditTagAlert = false
     
     @State private var editingIngredient = Ingredient.emptyIngredient
     @State private var editingFreeformText = ""
+    @State private var editingTag = ""
+    @State private var editingTagIndex: Int?
     
     @State private var photoItem: PhotosPickerItem?
     
@@ -27,6 +30,7 @@ struct DetailEditView: View {
     @State private var parsingProgress = 0
     @State private var isParsing = false
     @State private var animatePulse = false
+    @State private var parsingError: ErrorWrapper?
     
     @AppStorage("isAutomaticParsingSectionExpanded") private var isAutomaticParsingSectionExpanded = true
 
@@ -68,6 +72,7 @@ struct DetailEditView: View {
                         }) {
                             Image(systemName: "pencil")
                         }
+                        .accessibilityLabel("Edit \(ingredient.name)")
                     }
                 }
                 .onDelete { indices in
@@ -82,9 +87,52 @@ struct DetailEditView: View {
                 }) {
                     Image(systemName: "plus.circle.fill")
                 }
+                .accessibilityLabel("Add ingredient")
             }
             Section(header: Text("Instructions")) {
                 TextField("Instructions", text: $recipe.instructions, axis: .vertical).lineLimit(10)
+            }
+            Section(header: Text("Tags")) {
+                if !recipe.tags.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack {
+                            ForEach(Array(recipe.tags.enumerated()), id: \.offset) { index, tag in
+                                Chip(text: tag)
+                                    .contextMenu {
+                                        Button(action: {
+                                            editingTag = tag
+                                            editingTagIndex = index
+                                            isPresentingEditTagAlert = true
+                                        }) {
+                                            Label("Edit", systemImage: "pencil")
+                                        }
+                                        Button(role: .destructive, action: {
+                                            recipe.tags.remove(at: index)
+                                        }) {
+                                            Label("Delete", systemImage: "trash")
+                                        }
+                                    }
+                                    .onTapGesture {
+                                        editingTag = tag
+                                        editingTagIndex = index
+                                        isPresentingEditTagAlert = true
+                                    }
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+                Button(action: {
+                    editingTag = ""
+                    editingTagIndex = nil
+                    isPresentingEditTagAlert = true
+                }) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                        Text("Add Tag")
+                    }
+                }
+                .accessibilityLabel("Add tag")
             }
             Section {
                 DisclosureGroup("Automatic parsing", isExpanded: $isAutomaticParsingSectionExpanded) {
@@ -101,6 +149,8 @@ struct DetailEditView: View {
                         }
                         .disabled(recipeParser.instance?.loaded == false)
                         .buttonStyle(.bordered)
+                        .accessibilityLabel("Import recipe from text")
+                        .accessibilityHint(recipeParser.instance?.loaded == false ? "Apple Intelligence required" : "Parse recipe from pasted text")
                         
                         PhotosPicker(selection: $photoItem) {
                             HStack {
@@ -112,6 +162,8 @@ struct DetailEditView: View {
                         }
                         .disabled(recipeParser.instance?.loaded == false)
                         .buttonStyle(.bordered)
+                        .accessibilityLabel("Import recipe from photo")
+                        .accessibilityHint(recipeParser.instance?.loaded == false ? "Apple Intelligence required" : "Parse recipe from photo using text recognition")
                     }
                     .task(id: photoItem) {
                         if let photoData = try? await photoItem?.loadTransferable(type: Data.self) {
@@ -121,19 +173,31 @@ struct DetailEditView: View {
                                     if !text.isEmpty {
                                         Task {
                                             if let parser = recipeParser.instance {
-                                                isParsing = true
-                                                parsingProgress = 0
-                                                recipe = try await parser.parse(recipetText: text)
-                                                parsingProgress = 3
-                                                isParsing = false
-                                                
-                                                parsingProgress = 0
+                                                do {
+                                                    isParsing = true
+                                                    parsingProgress = 0
+                                                    recipe = try await parser.parse(recipeText: text)
+                                                    parsingProgress = 3
+                                                    isParsing = false
+                                                    parsingProgress = 0
+                                                } catch {
+                                                    isParsing = false
+                                                    parsingProgress = 0
+                                                    parsingError = ErrorWrapper(
+                                                        error: error,
+                                                        guidance: "Unable to parse recipe from image. Please try manual entry or check image quality."
+                                                    )
+                                                }
                                             }
                                             photoItem = nil
                                         }
                                     }
                                 } else {
-                                    print("Failed to recognize text.")
+                                    // Text recognition failed
+                                    parsingError = ErrorWrapper(
+                                        error: NSError(domain: "com.andrewwhipple.Chaser", code: 1, userInfo: [NSLocalizedDescriptionKey: "OCR Failed"]),
+                                        guidance: "Unable to recognize text in the image. Please ensure the image is clear and contains visible text."
+                                    )
                                     photoItem = nil
                                 }
                             }
@@ -169,6 +233,32 @@ struct DetailEditView: View {
                 await recipeParser.checkAndReload()
             }
         }
+        .alert(item: $parsingError) { errorWrapper in
+            Alert(
+                title: Text("Parsing Error"),
+                message: Text(errorWrapper.guidance),
+                dismissButton: .default(Text("OK"))
+            )
+        }
+        .alert(editingTagIndex == nil ? "Add Tag" : "Edit Tag", isPresented: $isPresentingEditTagAlert) {
+            TextField("Tag name", text: $editingTag)
+            Button("Cancel", role: .cancel) {
+                editingTag = ""
+                editingTagIndex = nil
+            }
+            Button(editingTagIndex == nil ? "Add" : "Save") {
+                let trimmedTag = editingTag.trimmingCharacters(in: .whitespaces)
+                if !trimmedTag.isEmpty {
+                    if let index = editingTagIndex {
+                        recipe.tags[index] = trimmedTag
+                    } else {
+                        recipe.tags.append(trimmedTag)
+                    }
+                }
+                editingTag = ""
+                editingTagIndex = nil
+            }
+        }
         .sheet(isPresented: $isPresentingEditIngredientsView) {
             NavigationStack {
                 IngredientEditView(ingredient: $editingIngredient)
@@ -185,7 +275,10 @@ struct DetailEditView: View {
                         ToolbarItem(placement: .confirmationAction) {
                             Button("Done") {
                                 isPresentingEditIngredientsView = false
-                                recipe.ingredients.append(editingIngredient)
+                                // Only append if ingredient name is not empty
+                                if !editingIngredient.name.trimmingCharacters(in: .whitespaces).isEmpty {
+                                    recipe.ingredients.append(editingIngredient)
+                                }
                             }
                         }
                     }
@@ -205,15 +298,22 @@ struct DetailEditView: View {
                                 isPresentingFreeformInputEditView = false
                                 if !editingFreeformText.isEmpty {
                                     Task {
-                                        print("Hi")
                                         if let parser = recipeParser.instance {
-                                            isParsing = true
-                                            parsingProgress = 0
-                                            recipe = try await parser.parse(recipetText: editingFreeformText)
-                                            parsingProgress = 3
-                                            isParsing = false
-                                            
-                                            parsingProgress = 0
+                                            do {
+                                                isParsing = true
+                                                parsingProgress = 0
+                                                recipe = try await parser.parse(recipeText: editingFreeformText)
+                                                parsingProgress = 3
+                                                isParsing = false
+                                                parsingProgress = 0
+                                            } catch {
+                                                isParsing = false
+                                                parsingProgress = 0
+                                                parsingError = ErrorWrapper(
+                                                    error: error,
+                                                    guidance: "Unable to parse recipe from text. Please check the format and try again."
+                                                )
+                                            }
                                         }
                                     }
                                 }

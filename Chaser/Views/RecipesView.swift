@@ -13,8 +13,10 @@ struct RecipesView: View {
     @Environment(\.scenePhase) private var scenePhase
     
     @State private var isPresentingNewRecipeView = false
+    @State private var isPresentingSampleRecipes = false
     @State private var searchText = ""
     @State private var isImporting = false
+    @State private var importError: ErrorWrapper?
     
     let saveAction: () -> Void
     
@@ -49,14 +51,23 @@ struct RecipesView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack {
+                        Button(action: {
+                            isPresentingSampleRecipes = true
+                        }) {
+                            Image(systemName: "book.fill")
+                        }
+                        .accessibilityLabel("Sample recipes")
+                        .accessibilityHint("Browse sample cocktail recipes to add to your library")
                         Button(action: shareRecipes) {
                             Image(systemName: "square.and.arrow.up")
                         }
                         .accessibilityLabel("Share recipes")
+                        .accessibilityHint("Export all recipes as a JSON file")
                         Button(action: { isImporting = true }) {
                             Image(systemName: "square.and.arrow.down")
                         }
                         .accessibilityLabel("Import recipes")
+                        .accessibilityHint("Import recipes from a JSON file")
                         .fileImporter(isPresented: $isImporting, allowedContentTypes: [.json]) { result in
                             handleFileImport(result: result)
                         }
@@ -66,6 +77,7 @@ struct RecipesView: View {
                             Image(systemName: "plus")
                         }
                         .accessibilityLabel("New recipe")
+                        .accessibilityHint("Create a new cocktail recipe")
                     }
                 }
                 
@@ -74,16 +86,33 @@ struct RecipesView: View {
         .sheet(isPresented: $isPresentingNewRecipeView) {
             NewRecipeView(recipes: $recipes, isPresentingNewRecipeView: $isPresentingNewRecipeView)
         }
+        .fullScreenCover(isPresented: $isPresentingSampleRecipes) {
+            SampleRecipesView(recipes: $recipes)
+        }
+        .alert(item: $importError) { errorWrapper in
+            Alert(
+                title: Text("Import Failed"),
+                message: Text(errorWrapper.guidance),
+                dismissButton: .default(Text("OK"))
+            )
+        }
         .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase == .inactive { saveAction() }
         }
         .onChange(of: isPresentingNewRecipeView) {
             saveAction()
         }
+        .onChange(of: isPresentingSampleRecipes) {
+            saveAction()
+        }
     }
     
     private func deleteRecipe(at offsets: IndexSet) {
-        recipes.remove(atOffsets: offsets)
+        let recipesToDelete = offsets.map { filteredRecipes[$0].id }
+        
+        recipes.removeAll { recipe in
+            recipesToDelete.contains(recipe.id)
+        }
     }
     
     private func shareRecipes() {
@@ -123,10 +152,14 @@ struct RecipesView: View {
                 recipes.append(contentsOf: decodedRecipes)
                 
             } catch {
-                print("Failed to import recipes: \(error.localizedDescription)")
+                importError = ErrorWrapper(
+                    error: error,
+                    guidance: "Unable to import recipes. Please ensure the file is a valid Chaser recipe export."
+                )
             }
         case .failure(let error):
-            print("File import failed: \(error.localizedDescription)")
+            // User cancelled or file access denied - don't show error
+            break
         }
     }
 
@@ -143,6 +176,8 @@ struct SearchBar: View {
                 .background(Color(.systemGray6))
                 .cornerRadius(8)
                 .padding(.horizontal, 10)
+                .accessibilityLabel("Search recipes")
+                .accessibilityHint("Search by recipe name, ingredient, or instructions")
         }
     }
 }

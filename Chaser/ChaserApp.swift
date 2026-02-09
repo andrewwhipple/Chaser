@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import OSLog
 
 @main
 struct ChaserApp: App {
@@ -30,7 +31,16 @@ struct ChaserApp: App {
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            // If persistent storage fails, fall back to in-memory storage
+            Logger.storage.error("Failed to create persistent ModelContainer: \(error.localizedDescription). Falling back to in-memory storage.")
+            let inMemoryConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            do {
+                return try ModelContainer(for: schema, configurations: [inMemoryConfiguration])
+            } catch {
+                // This should never happen, but if it does, we have a critical issue
+                Logger.storage.fault("Could not create ModelContainer with either persistent or in-memory storage: \(error.localizedDescription)")
+                fatalError("Could not create ModelContainer with either persistent or in-memory storage: \(error)")
+            }
         }
     }()
 
@@ -90,10 +100,10 @@ struct ChaserApp: App {
             let data = try Data(contentsOf: tempURL)
             let decodedRecipes = try JSONDecoder().decode([Recipe].self, from: data)
             store.recipes.append(contentsOf: decodedRecipes)
-
-            print("Successfully imported recipes!")
+            Logger.storage.info("Successfully imported \(decodedRecipes.count) recipe(s)")
         } catch {
-            print("Failed to import recipes: \(error.localizedDescription)")
+            Logger.storage.error("Failed to import recipes: \(error.localizedDescription)")
+            errorWrapper = ErrorWrapper(error: error, guidance: "Unable to import recipes. Please ensure the file is a valid Chaser recipe export.")
         }
     }
 }
@@ -113,7 +123,8 @@ final class RecipeParserWrapper: ObservableObject {
             let parser = try await RecipeParser()
             self.instance = parser
         } catch {
-            print("Failed to initialize RecipeParser: \(error)")
+            // Parser initialization failed - UI will display appropriate message based on availability
+            self.instance = nil
         }
     }
     
@@ -128,7 +139,6 @@ final class RecipeParserWrapper: ObservableObject {
         }
         
         // Attempt to reload for any other reason (modelNotReady, appleIntelligenceNotEnabled, unavailable, or nil)
-        print("Attempting to reload RecipeParser...")
         await initializeParser()
     }
 }
