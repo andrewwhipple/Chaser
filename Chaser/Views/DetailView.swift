@@ -37,8 +37,8 @@ struct DetailView: View {
             .accessibilityLabel("Share \(recipe.name)")
             .accessibilityHint("Export this recipe as a JSON file")
             Button("Edit") {
+                editingRecipe = recipe.copy()
                 isPresentingEditView = true
-                editingRecipe = recipe
             }
             .accessibilityHint("Edit recipe details, ingredients, and instructions")
         }

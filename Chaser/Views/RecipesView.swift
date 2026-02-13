@@ -51,13 +51,7 @@ struct RecipesView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack {
-                        Button(action: {
-                            isPresentingSampleRecipes = true
-                        }) {
-                            Image(systemName: "book.fill")
-                        }
-                        .accessibilityLabel("Sample recipes")
-                        .accessibilityHint("Browse sample cocktail recipes to add to your library")
+                        
                         Button(action: shareRecipes) {
                             Image(systemName: "square.and.arrow.up")
                         }
@@ -71,6 +65,13 @@ struct RecipesView: View {
                         .fileImporter(isPresented: $isImporting, allowedContentTypes: [.json]) { result in
                             handleFileImport(result: result)
                         }
+                        Button(action: {
+                            isPresentingSampleRecipes = true
+                        }) {
+                            Image(systemName: "book.fill")
+                        }
+                        .accessibilityLabel("Sample recipes")
+                        .accessibilityHint("Browse sample cocktail recipes to add to your library")
                         Button(action: {
                             isPresentingNewRecipeView = true
                         }) {

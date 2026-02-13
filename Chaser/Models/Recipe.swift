@@ -69,6 +69,31 @@ final class Recipe: Codable {
     static func fromFreeformText(input: String) -> Recipe {        
         return Recipe.sampleRecipes[1]
     }
+    
+    // Create a deep copy of the recipe
+    func copy() -> Recipe {
+        let copiedIngredients = self.ingredients.map { ingredient in
+            Ingredient(
+                name: ingredient.name,
+                unit: ingredient.unit,
+                amount: ingredient.amount
+            )
+        }
+        
+        let copiedRecipe = Recipe(
+            name: self.name,
+            ingredients: copiedIngredients,
+            instructions: self.instructions,
+            tags: self.tags,
+            sourceRecipeId: self.sourceRecipeId
+        )
+        
+        copiedRecipe.id = self.id
+        copiedRecipe.createdAt = self.createdAt
+        copiedRecipe.updatedAt = self.updatedAt
+        
+        return copiedRecipe
+    }
 }
 
 
