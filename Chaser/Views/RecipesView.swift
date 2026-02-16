@@ -6,11 +6,15 @@
 //
 
 import SwiftUI
+import CloudKit
+import OSLog
 
 struct RecipesView: View {
     @Binding var recipes: [Recipe]
     
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject var store: RecipeStore
     
     @State private var isPresentingNewRecipeView = false
     @State private var isPresentingSampleRecipes = false
@@ -18,15 +22,13 @@ struct RecipesView: View {
     @State private var isImporting = false
     @State private var importError: ErrorWrapper?
     
-    let saveAction: () -> Void
-    
     var filteredRecipes: [Recipe] {
             if searchText.isEmpty {
                 return recipes
             } else {
                 return recipes.filter { recipe in
                     recipe.name.localizedCaseInsensitiveContains(searchText) ||
-                    recipe.ingredients.contains { ingredient in
+                    (recipe.ingredients ?? []).contains { ingredient in
                         ingredient.name.localizedCaseInsensitiveContains(searchText)
                     } ||
                     recipe.instructions.localizedCaseInsensitiveContains(searchText)
@@ -52,16 +54,17 @@ struct RecipesView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack {
                         
-                        Button(action: shareRecipes) {
+                        Button(action: shareRecipesJSON) {
                             Image(systemName: "square.and.arrow.up")
                         }
-                        .accessibilityLabel("Share recipes")
+                        .accessibilityLabel("Export recipes")
                         .accessibilityHint("Export all recipes as a JSON file")
+                        
                         Button(action: { isImporting = true }) {
                             Image(systemName: "square.and.arrow.down")
                         }
                         .accessibilityLabel("Import recipes")
-                        .accessibilityHint("Import recipes from a JSON file")
+                        .accessibilityHint("Import recipes from a shared link")
                         .fileImporter(isPresented: $isImporting, allowedContentTypes: [.json]) { result in
                             handleFileImport(result: result)
                         }
@@ -97,26 +100,19 @@ struct RecipesView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
-        .onChange(of: scenePhase) { oldPhase, newPhase in
-            if newPhase == .inactive { saveAction() }
-        }
-        .onChange(of: isPresentingNewRecipeView) {
-            saveAction()
-        }
-        .onChange(of: isPresentingSampleRecipes) {
-            saveAction()
-        }
     }
-    
+
     private func deleteRecipe(at offsets: IndexSet) {
-        let recipesToDelete = offsets.map { filteredRecipes[$0].id }
-        
-        recipes.removeAll { recipe in
-            recipesToDelete.contains(recipe.id)
+        for index in offsets {
+            let recipe = filteredRecipes[index]
+            modelContext.delete(recipe)
         }
     }
+
+    // MARK: - Legacy JSON Export/Import (kept but disconnected from UI)
+    // These methods are preserved for potential future use or testing
     
-    private func shareRecipes() {
+    private func shareRecipesJSON() {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
         
@@ -134,7 +130,13 @@ struct RecipesView: View {
         }
     }
     
+    // This is the active file import handler - currently still uses JSON
+    // Can be updated to handle CloudKit share links in the future
     private func handleFileImport(result: Result<URL, Error>) {
+        handleFileImportJSON(result: result)
+    }
+    
+    private func handleFileImportJSON(result: Result<URL, Error>) {
         switch result {
         case .success(let fileURL):
             do {
@@ -150,7 +152,12 @@ struct RecipesView: View {
                 // Read the file content
                 let data = try Data(contentsOf: fileURL)
                 let decodedRecipes = try JSONDecoder().decode([Recipe].self, from: data)
-                recipes.append(contentsOf: decodedRecipes)
+                
+                // Insert each recipe into the model context
+                for recipe in decodedRecipes {
+                    modelContext.insert(recipe)
+                }
+                
                 
             } catch {
                 importError = ErrorWrapper(
@@ -158,7 +165,7 @@ struct RecipesView: View {
                     guidance: "Unable to import recipes. Please ensure the file is a valid Chaser recipe export."
                 )
             }
-        case .failure(let error):
+        case .failure(_):
             // User cancelled or file access denied - don't show error
             break
         }
@@ -186,6 +193,6 @@ struct SearchBar: View {
 
 struct RecipesView_Previews: PreviewProvider {
     static var previews: some View {
-        RecipesView(recipes: .constant(Recipe.sampleRecipes), saveAction: {})
+        RecipesView(recipes: .constant(Recipe.sampleRecipes))
     }
 }

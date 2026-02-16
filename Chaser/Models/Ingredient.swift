@@ -17,10 +17,14 @@ final class Ingredient: Identifiable, Codable {
         case id, name, unit, amount
     }
     
-    var id: UUID
-    var name: String
-    var unit: Unit
-    var amount: Double
+    // CloudKit requires all properties to have default values or be optional
+    var id: UUID = UUID()
+    var name: String = ""
+    var unit: Unit = Unit.null
+    var amount: Double = 0.0
+    
+    // Inverse relationship for CloudKit
+    var recipe: Recipe?
 
     init(name: String, unit: Unit, amount: Double) {
         self.id = UUID()
@@ -193,3 +197,4 @@ struct GenerableIngredient {
     var unit: String
     var amount: Double
 }
+

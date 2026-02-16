@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import OSLog
+import CloudKit
 
 @main
 struct ChaserApp: App {
@@ -26,14 +27,23 @@ struct ChaserApp: App {
         let schema = Schema([
             Recipe.self,
         ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        // Use SwiftData's built-in CloudKit integration
+        let modelConfiguration = ModelConfiguration(
+            schema: schema,
+            isStoredInMemoryOnly: false,
+            cloudKitDatabase: .private("iCloud.com.andrewwhipple.Chaser")
+        )
 
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
             // If persistent storage fails, fall back to in-memory storage
             Logger.storage.error("Failed to create persistent ModelContainer: \(error.localizedDescription). Falling back to in-memory storage.")
-            let inMemoryConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            let inMemoryConfiguration = ModelConfiguration(
+                schema: schema,
+                isStoredInMemoryOnly: true,
+                cloudKitDatabase: .none
+            )
             do {
                 return try ModelContainer(for: schema, configurations: [inMemoryConfiguration])
             } catch {
@@ -46,28 +56,17 @@ struct ChaserApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RecipesView(recipes: $store.recipes) {
-                Task {
-                    do {
-                        try await store.save(recipes: store.recipes)
-                    } catch {
-                        errorWrapper = ErrorWrapper(error: error, guidance: "Try again later")
-                    }
-                }
-            }
-            .task {
-                do {
-                    try await store.load()
-                } catch {
-                    errorWrapper = ErrorWrapper(error: error, guidance: "App will load sample data and continue")
-                }
-            }
+            ContentView()
+                .environmentObject(store)
             .sheet(item: $errorWrapper) {
-                store.recipes = Recipe.sampleRecipes
+                // No need to load sample recipes - SwiftData handles persistence
             } content: { wrapper in
                 ErrorView(errorWrapper: wrapper)
             }.onOpenURL { url in
-                handleIncomingFile(url: url)
+                handleIncomingURL(url: url)
+            }
+            .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { userActivity in
+                handleCloudKitShare(userActivity: userActivity)
             }
             .onChange(of: scenePhase) { oldPhase, newPhase in
                 if newPhase == .active {
@@ -79,6 +78,43 @@ struct ChaserApp: App {
         }
         .modelContainer(sharedModelContainer)
         .environmentObject(recipeParser)
+    }
+    
+    private func handleIncomingURL(url: URL) {
+        // Check if it's a CloudKit share URL
+        if url.scheme == "https" && url.host?.contains("icloud") == true {
+            // This will be handled by handleCloudKitShare
+            return
+        }
+        
+        // Otherwise, handle as file import
+        handleIncomingFile(url: url)
+    }
+    
+    private func handleCloudKitShare(userActivity: NSUserActivity) {
+        // CloudKit share metadata is passed through userInfo
+        guard userActivity.activityType == NSUserActivityTypeBrowsingWeb,
+              let incomingURL = userActivity.webpageURL,
+              let components = URLComponents(url: incomingURL, resolvingAgainstBaseURL: false) else {
+            return
+        }
+        
+        // For CloudKit shares, we need to use the CKContainer.accept method
+        // The metadata needs to be fetched from the URL
+        Task {
+            do {
+                let container = CKContainer(identifier: "iCloud.com.andrewwhipple.Chaser")
+                let metadata = try await container.shareMetadata(for: incomingURL)
+                try await store.acceptShare(metadata: metadata)
+                Logger.storage.info("Successfully accepted CloudKit share")
+            } catch {
+                Logger.storage.error("Failed to accept share: \(error.localizedDescription)")
+                errorWrapper = ErrorWrapper(
+                    error: error,
+                    guidance: "Unable to accept the shared recipes. Please try again."
+                )
+            }
+        }
     }
     
     private func handleIncomingFile(url: URL) {

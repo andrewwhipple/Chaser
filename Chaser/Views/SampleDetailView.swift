@@ -10,6 +10,7 @@ import SwiftUI
 struct SampleDetailView: View {
     let sampleRecipe: Recipe
     @Binding var recipes: [Recipe]
+    @Environment(\.modelContext) private var modelContext
     
     // Check if this sample recipe has already been added to the user's library
     private var isRecipeInLibrary: Bool {
@@ -20,20 +21,20 @@ struct SampleDetailView: View {
     private func addToLibrary() {
         let newRecipe = Recipe(
             name: sampleRecipe.name,
-            ingredients: sampleRecipe.ingredients.map { ingredient in
+            ingredients: (sampleRecipe.ingredients ?? []).map { ingredient in
                 Ingredient(name: ingredient.name, unit: ingredient.unit, amount: ingredient.amount)
             },
             instructions: sampleRecipe.instructions,
             tags: sampleRecipe.tags,
             sourceRecipeId: sampleRecipe.id
         )
-        recipes.append(newRecipe)
+        modelContext.insert(newRecipe)
     }
     
     var body: some View {
         List {
             Section(header: Text("Ingredients")) {
-                ForEach(sampleRecipe.ingredients) { ingredient in
+                ForEach(sampleRecipe.ingredients ?? []) { ingredient in
                     Text(ingredient.description)
                 }
             }

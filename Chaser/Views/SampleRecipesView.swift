@@ -10,6 +10,7 @@ import SwiftUI
 struct SampleRecipesView: View {
     @Binding var recipes: [Recipe]
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     
     private let sampleLibrary = SampleRecipeLibrary.shared
     
@@ -22,14 +23,14 @@ struct SampleRecipesView: View {
     private func addToLibrary(sampleRecipe: Recipe) {
         let newRecipe = Recipe(
             name: sampleRecipe.name,
-            ingredients: sampleRecipe.ingredients.map { ingredient in
+            ingredients: (sampleRecipe.ingredients ?? []).map { ingredient in
                 Ingredient(name: ingredient.name, unit: ingredient.unit, amount: ingredient.amount)
             },
             instructions: sampleRecipe.instructions,
             tags: sampleRecipe.tags,
             sourceRecipeId: sampleRecipe.id
         )
-        recipes.append(newRecipe)
+        modelContext.insert(newRecipe)
     }
     
     var body: some View {

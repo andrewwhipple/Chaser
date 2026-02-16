@@ -6,9 +6,14 @@
 //
 
 import SwiftUI
+import CloudKit
+import OSLog
 
 struct DetailView: View {
     @Binding var recipe: Recipe
+    
+    @Environment(\.scenePhase) private var scenePhase
+    @EnvironmentObject var store: RecipeStore
     
     @State private var editingRecipe = Recipe.emptyRecipe
     @State private var isPresentingEditView = false
@@ -16,7 +21,7 @@ struct DetailView: View {
     var body: some View {
         List {
             Section(header: Text("Ingredients")) {
-                ForEach(recipe.ingredients) { ingredient in
+                ForEach(recipe.ingredients ?? []) { ingredient in
                     Text(ingredient.description)
                 }
             }
@@ -31,11 +36,11 @@ struct DetailView: View {
         }
         .navigationTitle(recipe.name)
         .toolbar {
-            Button(action: shareRecipe) {
+            Button(action: shareRecipeJSON) {
                 Image(systemName: "square.and.arrow.up")
             }
-            .accessibilityLabel("Share \(recipe.name)")
-            .accessibilityHint("Export this recipe as a JSON file")
+            .accessibilityLabel("Export \(recipe.name)")
+            .accessibilityHint("Export this recipe as JSON")
             Button("Edit") {
                 editingRecipe = recipe.copy()
                 isPresentingEditView = true
@@ -55,10 +60,26 @@ struct DetailView: View {
                         ToolbarItem(placement: .confirmationAction) {
                             Button("Done") {
                                 isPresentingEditView = false
-                                // Trim whitespace from recipe name
-                                editingRecipe.name = editingRecipe.name.trimmingCharacters(in: .whitespaces)
-                                editingRecipe.updatedAt = Date()
-                                recipe = editingRecipe
+                                // Update properties of the original recipe (SwiftData-tracked)
+                                // instead of replacing the entire object
+                                recipe.name = editingRecipe.name.trimmingCharacters(in: .whitespaces)
+                                recipe.instructions = editingRecipe.instructions
+                                recipe.tags = editingRecipe.tags
+                                recipe.updatedAt = Date()
+                                
+                                // For ingredients, we need to remove old ones and add new ones
+                                // because they are separate SwiftData entities
+                                recipe.ingredients?.removeAll()
+                                if let newIngredients = editingRecipe.ingredients {
+                                    for editedIngredient in newIngredients {
+                                        let newIngredient = Ingredient(
+                                            name: editedIngredient.name,
+                                            unit: editedIngredient.unit,
+                                            amount: editedIngredient.amount
+                                        )
+                                        recipe.ingredients?.append(newIngredient)
+                                    }
+                                }
                             }
                         }
                     }
@@ -66,7 +87,8 @@ struct DetailView: View {
         }
     }
     
-    private func shareRecipe() {
+    // MARK: - Legacy JSON Export (kept but disconnected from UI)
+    func shareRecipeJSON() {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
         

@@ -17,17 +17,20 @@ final class Recipe: Codable {
         case id, createdAt, updatedAt, name, ingredients, instructions, tags, sourceRecipeId
     }
     
-    @Attribute(.unique) var id: UUID
-    var createdAt: Date
-    var updatedAt: Date
+    // CloudKit requires no unique constraints
+    var id: UUID = UUID()
+    var createdAt: Date = Date()
+    var updatedAt: Date = Date()
     
-    var name: String
-    var ingredients: Array<Ingredient>
-    var instructions: String
-    var tags: Array<String>
-    var sourceRecipeId: UUID? // Tracks if this recipe was added from the sample library
+    var name: String = ""
+    // CloudKit requires relationships to be optional and have inverses
+    @Relationship(deleteRule: .cascade, inverse: \Ingredient.recipe)
+    var ingredients: [Ingredient]? = []
+    var instructions: String = ""
+    var tags: [String] = []
+    var sourceRecipeId: UUID? = nil
     
-    init(name: String, ingredients: Array<Ingredient>, instructions: String, tags: Array<String> = [], sourceRecipeId: UUID? = nil) {
+    init(name: String, ingredients: [Ingredient], instructions: String, tags: [String] = [], sourceRecipeId: UUID? = nil) {
         self.id = UUID()
         self.createdAt = Date()
         self.updatedAt = Date()
@@ -72,7 +75,7 @@ final class Recipe: Codable {
     
     // Create a deep copy of the recipe
     func copy() -> Recipe {
-        let copiedIngredients = self.ingredients.map { ingredient in
+        let copiedIngredients = (self.ingredients ?? []).map { ingredient in
             Ingredient(
                 name: ingredient.name,
                 unit: ingredient.unit,

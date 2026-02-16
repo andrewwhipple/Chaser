@@ -11,10 +11,11 @@ struct NewRecipeView: View {
     @State private var newRecipe = Recipe.emptyRecipe
     @Binding var recipes: [Recipe]
     @Binding var isPresentingNewRecipeView: Bool
+    @Environment(\.modelContext) private var modelContext
     
     private var isValidRecipe: Bool {
         !newRecipe.name.trimmingCharacters(in: .whitespaces).isEmpty &&
-        !newRecipe.ingredients.isEmpty
+        !(newRecipe.ingredients ?? []).isEmpty
     }
     
     var body: some View {
@@ -28,7 +29,7 @@ struct NewRecipeView: View {
                     }
                     ToolbarItem(placement: .confirmationAction) {
                         Button("Add") {
-                            recipes.append(newRecipe)
+                            modelContext.insert(newRecipe)
                             isPresentingNewRecipeView = false
                         }
                         .disabled(!isValidRecipe)

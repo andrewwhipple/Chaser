@@ -60,7 +60,7 @@ struct DetailEditView: View {
                 TextField("Name", text: $recipe.name )
             }
             Section(header: Text("Ingredients")) {
-                ForEach(recipe.ingredients) { ingredient in
+                ForEach(recipe.ingredients ?? []) { ingredient in
                     HStack {
                         Text(ingredient.description)
                         Button(action: {
@@ -76,7 +76,7 @@ struct DetailEditView: View {
                     }
                 }
                 .onDelete { indices in
-                    recipe.ingredients.remove(atOffsets: indices)
+                    recipe.ingredients?.remove(atOffsets: indices)
                 }
                 Button(action: {
                     initialIngredientName = Ingredient.emptyIngredient.name
@@ -277,7 +277,7 @@ struct DetailEditView: View {
                                 isPresentingEditIngredientsView = false
                                 // Only append if ingredient name is not empty
                                 if !editingIngredient.name.trimmingCharacters(in: .whitespaces).isEmpty {
-                                    recipe.ingredients.append(editingIngredient)
+                                    recipe.ingredients?.append(editingIngredient)
                                 }
                             }
                         }

@@ -38,7 +38,7 @@ struct CardView: View {
         VStack(alignment: .leading) {
             Text(recipe.name).font(.headline)
             Spacer()
-            getIngredientChips(ingredients: recipe.ingredients)
+            getIngredientChips(ingredients: recipe.ingredients ?? [])
             .font(.caption)
         }
         .padding()
