@@ -36,11 +36,11 @@ struct DetailView: View {
         }
         .navigationTitle(recipe.name)
         .toolbar {
-            Button(action: shareRecipeJSON) {
+            Button(action: shareRecipeURL) {
                 Image(systemName: "square.and.arrow.up")
             }
-            .accessibilityLabel("Export \(recipe.name)")
-            .accessibilityHint("Export this recipe as JSON")
+            .accessibilityLabel("Share \(recipe.name)")
+            .accessibilityHint("Share this recipe with friends")
             Button("Edit") {
                 editingRecipe = recipe.copy()
                 isPresentingEditView = true
@@ -87,7 +87,37 @@ struct DetailView: View {
         }
     }
     
-    // MARK: - Legacy JSON Export (kept but disconnected from UI)
+    // MARK: - URL-based Recipe Sharing
+    func shareRecipeURL() {
+        guard let shareURL = RecipeURLSharing.createShareURL(from: recipe) else {
+            Logger.storage.error("Failed to create shareable URL for recipe: \(recipe.name)")
+            return
+        }
+        
+        let activityViewController = UIActivityViewController(
+            activityItems: [shareURL],
+            applicationActivities: nil
+        )
+        
+        // Present the share sheet
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootViewController = scene.windows.first?.rootViewController {
+            // For iPad, we need to configure the popover
+            if let popoverController = activityViewController.popoverPresentationController {
+                popoverController.sourceView = rootViewController.view
+                popoverController.sourceRect = CGRect(
+                    x: rootViewController.view.bounds.midX,
+                    y: rootViewController.view.bounds.midY,
+                    width: 0,
+                    height: 0
+                )
+                popoverController.permittedArrowDirections = []
+            }
+            rootViewController.present(activityViewController, animated: true, completion: nil)
+        }
+    }
+    
+    // MARK: - Legacy JSON Export (kept for reference, no longer in UI)
     func shareRecipeJSON() {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted

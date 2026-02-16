@@ -22,12 +22,14 @@ struct CardView: View {
             }
         }
         
-        let result = HStack {
-            ForEach(presentIngredients, id: \.self) { ingredient in
-                Chip(text: ingredient)
-            }
-            ForEach(recipe.tags, id: \.self) { tag in
-                Chip(text: tag)
+        let result = ScrollView(.horizontal, showsIndicators: false) {
+            HStack {
+                ForEach(presentIngredients, id: \.self) { ingredient in
+                    Chip(text: ingredient)
+                }
+                ForEach(recipe.tags, id: \.self) { tag in
+                    Chip(text: tag)
+                }
             }
         }
         

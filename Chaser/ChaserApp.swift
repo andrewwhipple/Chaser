@@ -17,6 +17,7 @@ struct ChaserApp: App {
     @StateObject var recipeParser: RecipeParserWrapper
     
     @State private var importedFileURL: URL?
+    @State private var pendingRecipeImport: Recipe?
     @Environment(\.scenePhase) private var scenePhase
     
     init() {
@@ -56,7 +57,7 @@ struct ChaserApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(pendingRecipeImport: $pendingRecipeImport)
                 .environmentObject(store)
             .sheet(item: $errorWrapper) {
                 // No need to load sample recipes - SwiftData handles persistence
@@ -81,6 +82,22 @@ struct ChaserApp: App {
     }
     
     private func handleIncomingURL(url: URL) {
+        // Handle chasercocktails:// recipe sharing URL
+        if url.scheme == "chasercocktails" {
+            do {
+                let recipe = try RecipeURLSharing.decodeRecipe(from: url)
+                pendingRecipeImport = recipe
+                Logger.storage.info("Successfully decoded recipe from URL: \(recipe.name)")
+            } catch {
+                Logger.storage.error("Failed to decode recipe from URL: \(error.localizedDescription)")
+                errorWrapper = ErrorWrapper(
+                    error: error,
+                    guidance: error.localizedDescription
+                )
+            }
+            return
+        }
+        
         // Check if it's a CloudKit share URL
         if url.scheme == "https" && url.host?.contains("icloud") == true {
             // This will be handled by handleCloudKitShare
