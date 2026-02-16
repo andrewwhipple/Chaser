@@ -33,6 +33,7 @@ struct DetailEditView: View {
     @State private var parsingError: ErrorWrapper?
     
     @AppStorage("isAutomaticParsingSectionExpanded") private var isAutomaticParsingSectionExpanded = true
+    @AppStorage("hideAutomaticParsing") private var hideAutomaticParsing = false
 
     
     private func editIngredientsViewTitle(title: String) -> String {
@@ -134,8 +135,9 @@ struct DetailEditView: View {
                 }
                 .accessibilityLabel("Add tag")
             }
-            Section {
-                DisclosureGroup("Automatic parsing", isExpanded: $isAutomaticParsingSectionExpanded) {
+            if !hideAutomaticParsing {
+                Section {
+                    DisclosureGroup("Automatic parsing", isExpanded: $isAutomaticParsingSectionExpanded) {
                     VStack(alignment: .leading, spacing: 12) {
                         Button(action: {
                             isPresentingFreeformInputEditView = true
@@ -226,6 +228,7 @@ struct DetailEditView: View {
                         }
                     }
                 }
+            }
             }
         }
         .onAppear {

@@ -16,8 +16,11 @@ struct RecipesView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var store: RecipeStore
     
+    @AppStorage("jsonImportExportEnabled") private var jsonImportExportEnabled = false
+
     @State private var isPresentingNewRecipeView = false
     @State private var isPresentingSampleRecipes = false
+    @State private var isPresentingSettings = false
     @State private var searchText = ""
     @State private var isImporting = false
     @State private var importError: ErrorWrapper?
@@ -51,22 +54,33 @@ struct RecipesView: View {
             }
             .navigationTitle("Recipes")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: {
+                        isPresentingSettings = true
+                    }) {
+                        Image(systemName: "gearshape")
+                    }
+                    .accessibilityLabel("Settings")
+                    .accessibilityHint("Open settings")
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack {
                         
-                        Button(action: shareRecipesJSON) {
-                            Image(systemName: "square.and.arrow.up")
-                        }
-                        .accessibilityLabel("Export recipes")
-                        .accessibilityHint("Export all recipes as a JSON file")
-                        
-                        Button(action: { isImporting = true }) {
-                            Image(systemName: "square.and.arrow.down")
-                        }
-                        .accessibilityLabel("Import recipes")
-                        .accessibilityHint("Import recipes from a shared link")
-                        .fileImporter(isPresented: $isImporting, allowedContentTypes: [.json]) { result in
-                            handleFileImport(result: result)
+                        if jsonImportExportEnabled {
+                            Button(action: shareRecipesJSON) {
+                                Image(systemName: "square.and.arrow.up")
+                            }
+                            .accessibilityLabel("Export recipes")
+                            .accessibilityHint("Export all recipes as a JSON file")
+                            Button(action: { isImporting = true }) {
+                                Image(systemName: "square.and.arrow.down")
+                            }
+                            .accessibilityLabel("Import recipes")
+                            .accessibilityHint("Import recipes from a shared link")
+                            .fileImporter(isPresented: $isImporting, allowedContentTypes: [.json]) { result in
+                                handleFileImport(result: result)
+                            }
                         }
                         Button(action: {
                             isPresentingSampleRecipes = true
@@ -92,6 +106,9 @@ struct RecipesView: View {
         }
         .fullScreenCover(isPresented: $isPresentingSampleRecipes) {
             SampleRecipesView(recipes: $recipes)
+        }
+        .sheet(isPresented: $isPresentingSettings) {
+            SettingsView()
         }
         .alert(item: $importError) { errorWrapper in
             Alert(
