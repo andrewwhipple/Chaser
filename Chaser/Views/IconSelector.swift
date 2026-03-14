@@ -12,10 +12,11 @@ import SwiftUI
 struct IconSelector: View {
     let icon: Icon
     let currentIconName: String?
+    var locked: Bool = false
     
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 20)
                 .fill(Color.primary.opacity(0.1))
                 .frame(width: 80, height: 80)
         
@@ -37,6 +38,19 @@ struct IconSelector: View {
                     .foregroundColor(.green)
                     .background(Circle().fill(Color.white))
                     .offset(x: 30, y: -30)
+            }
+        }
+        .grayscale(locked ? 1 : 0)
+        .opacity(locked ? 0.5 : 1)
+        .overlay(alignment: .bottomTrailing) {
+            if locked {
+                Image(systemName: "lock.fill")
+                    .font(.caption2)
+                    .foregroundColor(.white)
+                    .padding(4)
+                    .background(Color.black.opacity(0.55))
+                    .clipShape(Circle())
+                    .offset(x: 2, y: 2)
             }
         }
         

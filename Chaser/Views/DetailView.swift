@@ -117,7 +117,7 @@ struct DetailView: View {
         }
     }
     
-    // MARK: - Legacy JSON Export (kept for reference, no longer in UI)
+    // MARK: - Legacy JSON Export
     func shareRecipeJSON() {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted

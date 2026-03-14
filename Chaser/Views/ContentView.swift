@@ -12,13 +12,16 @@ import OSLog
 
 /// Bridge view that connects SwiftData (with CloudKit) to the existing RecipesView
 struct ContentView: View {
-    // SwiftData automatically loads and syncs with CloudKit!
+    @EnvironmentObject private var purchaseManager: PurchaseManager
+    
     @Query(sort: [SortDescriptor(\Recipe.updatedAt, order: .reverse)]) private var recipes: [Recipe]
     @Environment(\.modelContext) private var modelContext
     
     @Binding var pendingRecipeImport: Recipe?
     
     var body: some View {
+        //Text("Products loaded: \(purchaseManager.productsLoaded)")
+        //Text("Products: \(purchaseManager.products)")
         RecipesView(
             recipes: Binding(
                 get: { recipes },
@@ -29,14 +32,19 @@ struct ContentView: View {
         .onChange(of: pendingRecipeImport) { oldValue, newValue in
             if let recipe = newValue {
                 importRecipe(recipe)
-                // Clear the pending import
                 pendingRecipeImport = nil
+            }
+        }.task {
+            do {
+                try await purchaseManager.loadProducts()
+            } catch {
+                Logger.iap.error("Error loading products: \(error.localizedDescription)")
             }
         }
     }
     
     private func importRecipe(_ recipe: Recipe) {
-        // Create a new recipe with new UUID (since the shared recipe doesn't include UUID)
+  
         let newRecipe = Recipe(
             name: recipe.name,
             ingredients: (recipe.ingredients ?? []).map { ingredient in

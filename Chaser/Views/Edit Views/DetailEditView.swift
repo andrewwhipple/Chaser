@@ -33,7 +33,7 @@ struct DetailEditView: View {
     @State private var parsingError: ErrorWrapper?
     
     @AppStorage("isAutomaticParsingSectionExpanded") private var isAutomaticParsingSectionExpanded = true
-    @AppStorage("hideAutomaticParsing") private var hideAutomaticParsing = false
+    @AppStorage("showAutomaticParsing") private var showAutomaticParsing = true
 
     
     private func editIngredientsViewTitle(title: String) -> String {
@@ -135,7 +135,7 @@ struct DetailEditView: View {
                 }
                 .accessibilityLabel("Add tag")
             }
-            if !hideAutomaticParsing {
+            if showAutomaticParsing {
                 Section {
                     DisclosureGroup("Automatic parsing", isExpanded: $isAutomaticParsingSectionExpanded) {
                     VStack(alignment: .leading, spacing: 12) {

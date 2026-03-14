@@ -10,8 +10,14 @@ import SwiftUI
 struct CardView: View {
     let recipe: Recipe
 
+    @AppStorage("showAutomaticIngredientTags") private var showAutomaticIngredientTags = true
+    
     private func getIngredientChips(ingredients: [Ingredient]) -> some View {
-        let possibleIngredients = ["Rum", "Vodka", "Gin", "Tequila", "Mezcal", "Whisky", "Whiskey", "Scotch", "Rye", "Bourbon"]
+        var possibleIngredients = [String]()
+        if showAutomaticIngredientTags {
+            possibleIngredients = ["Rum", "Vodka", "Gin", "Tequila", "Mezcal", "Whisky", "Whiskey", "Scotch", "Rye", "Bourbon", "Cognac", "Brandy"]
+        }
+        
         
         var presentIngredients = [String]()
         

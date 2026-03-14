@@ -12,12 +12,10 @@ struct SampleDetailView: View {
     @Binding var recipes: [Recipe]
     @Environment(\.modelContext) private var modelContext
     
-    // Check if this sample recipe has already been added to the user's library
     private var isRecipeInLibrary: Bool {
         recipes.contains { $0.sourceRecipeId == sampleRecipe.id }
     }
     
-    // Add the sample recipe to the user's library
     private func addToLibrary() {
         let newRecipe = Recipe(
             name: sampleRecipe.name,

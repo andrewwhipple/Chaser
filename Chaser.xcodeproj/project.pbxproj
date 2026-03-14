@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		E46F7D0C2F5B255000B51FB0 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E46F7D0B2F5B255000B51FB0 /* StoreKit.framework */; };
+		E4FFC7AF2F54D19000BFDA19 /* ChaserProductsFile.storekit in Resources */ = {isa = PBXBuildFile; fileRef = E4FFC7AE2F54D19000BFDA19 /* ChaserProductsFile.storekit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		E46904172D19E27800E279F7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +32,8 @@
 		E46904022D19E27700E279F7 /* Chaser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Chaser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E46904162D19E27800E279F7 /* ChaserTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChaserTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E46904202D19E27800E279F7 /* ChaserUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChaserUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E46F7D0B2F5B255000B51FB0 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		E4FFC7AE2F54D19000BFDA19 /* ChaserProductsFile.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; name = ChaserProductsFile.storekit; path = Chaser/ChaserProductsFile.storekit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -65,6 +72,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E46F7D0C2F5B255000B51FB0 /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -88,9 +96,11 @@
 		E46903F92D19E27700E279F7 = {
 			isa = PBXGroup;
 			children = (
+				E4FFC7AE2F54D19000BFDA19 /* ChaserProductsFile.storekit */,
 				E46904042D19E27700E279F7 /* Chaser */,
 				E46904192D19E27800E279F7 /* ChaserTests */,
 				E46904232D19E27800E279F7 /* ChaserUITests */,
+				E46F7D0A2F5B255000B51FB0 /* Frameworks */,
 				E46904032D19E27700E279F7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -103,6 +113,14 @@
 				E46904202D19E27800E279F7 /* ChaserUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E46F7D0A2F5B255000B51FB0 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				E46F7D0B2F5B255000B51FB0 /* StoreKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -227,6 +245,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E4FFC7AF2F54D19000BFDA19 /* ChaserProductsFile.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

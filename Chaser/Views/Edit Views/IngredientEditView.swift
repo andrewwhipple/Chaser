@@ -22,7 +22,7 @@ struct IngredientEditView: View {
             TextField("Ingredient name", text: $ingredient.name)
             HStack {
                 Picker("Amount", selection: $amountMajor) {
-                    ForEach(0..<11, id: \.self) { i in
+                    ForEach(0..<301, id: \.self) { i in
                         Text("\(i)").tag(Double(i))
                     }
                 }

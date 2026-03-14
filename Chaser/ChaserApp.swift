@@ -15,6 +15,7 @@ struct ChaserApp: App {
     @StateObject private var store = RecipeStore()
     @State private var errorWrapper: ErrorWrapper?
     @StateObject var recipeParser: RecipeParserWrapper
+    @StateObject var purchaseManager = PurchaseManager()
     
     @State private var importedFileURL: URL?
     @State private var pendingRecipeImport: Recipe?
@@ -59,6 +60,10 @@ struct ChaserApp: App {
         WindowGroup {
             ContentView(pendingRecipeImport: $pendingRecipeImport)
                 .environmentObject(store)
+                .environmentObject(purchaseManager)
+                .task {
+                    await purchaseManager.updatePurchasedProducts()
+                }
             .sheet(item: $errorWrapper) {
                 // No need to load sample recipes - SwiftData handles persistence
             } content: { wrapper in

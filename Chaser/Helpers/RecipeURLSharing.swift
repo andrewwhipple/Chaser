@@ -9,12 +9,8 @@ import Foundation
 import SwiftData
 import OSLog
 
-/// Helper class for sharing recipes via URL scheme
 class RecipeURLSharing {
     
-    // MARK: - Shareable Recipe Structure
-    
-    /// A simplified recipe structure for URL sharing (excludes UUID and timestamps)
     private struct ShareableRecipe: Codable {
         let name: String
         let ingredients: [ShareableIngredient]
@@ -28,14 +24,8 @@ class RecipeURLSharing {
         }
     }
     
-    // MARK: - Public Methods
-    
-    /// Creates a shareable URL from a Recipe
-    /// - Parameter recipe: The recipe to share
-    /// - Returns: A URL with the chasercocktails:// scheme containing the encoded recipe data, or nil if encoding fails
     static func createShareURL(from recipe: Recipe) -> URL? {
         do {
-            // Create shareable representation (without UUID, timestamps)
             let shareableIngredients = (recipe.ingredients ?? []).map { ingredient in
                 ShareableRecipe.ShareableIngredient(
                     name: sanitize(ingredient.name),
@@ -51,20 +41,16 @@ class RecipeURLSharing {
                 tags: recipe.tags.map { sanitize($0) }
             )
             
-            // Encode to JSON
             let encoder = JSONEncoder()
             let jsonData = try encoder.encode(shareableRecipe)
             
-            // Base64 encode the JSON
             let base64String = jsonData.base64EncodedString()
             
-            // URL encode the base64 string
             guard let urlEncodedString = base64String.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
                 Logger.storage.error("Failed to URL encode recipe data")
                 return nil
             }
             
-            // Create the URL with chasercocktails:// scheme
             let urlString = "chasercocktails://recipe?data=\(urlEncodedString)"
             return URL(string: urlString)
             
@@ -74,21 +60,16 @@ class RecipeURLSharing {
         }
     }
     
-    /// Decodes a recipe from a chasercocktails:// URL
-    /// - Parameter url: The URL to decode
-    /// - Returns: A Recipe object if successful, or throws an error
     static func decodeRecipe(from url: URL) throws -> Recipe {
-        // Validate the URL scheme
+        
         guard url.scheme == "chasercocktails" else {
             throw RecipeSharingError.invalidScheme
         }
         
-        // Validate the host/path
         guard url.host == "recipe" || url.path == "/recipe" else {
             throw RecipeSharingError.invalidURL
         }
         
-        // Extract the data parameter
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
               let queryItems = components.queryItems,
               let dataItem = queryItems.first(where: { $0.name == "data" }),
@@ -96,30 +77,24 @@ class RecipeURLSharing {
             throw RecipeSharingError.missingData
         }
         
-        // URL decode
         guard let base64String = encodedData.removingPercentEncoding else {
             throw RecipeSharingError.invalidEncoding
         }
         
-        // Base64 decode
         guard let jsonData = Data(base64Encoded: base64String) else {
             throw RecipeSharingError.invalidBase64
         }
         
-        // Check data size - prevent excessively large payloads
         let maxDataSize = 1_000_000 // 1MB limit
         guard jsonData.count <= maxDataSize else {
             throw RecipeSharingError.dataTooLarge
         }
         
-        // Decode JSON
         let decoder = JSONDecoder()
         let shareableRecipe = try decoder.decode(ShareableRecipe.self, from: jsonData)
         
-        // Validate and sanitize the decoded data
         try validate(shareableRecipe)
         
-        // Convert to Recipe
         let ingredients = shareableRecipe.ingredients.map { shareableIngredient in
             Ingredient(
                 name: sanitize(shareableIngredient.name),
@@ -139,13 +114,8 @@ class RecipeURLSharing {
         return recipe
     }
     
-    // MARK: - Private Helpers
-    
-    /// Sanitizes a string by removing potentially malicious characters
-    /// - Parameter input: The string to sanitize
-    /// - Returns: A sanitized string
     private static func sanitize(_ input: String) -> String {
-        // Trim whitespace
+
         var sanitized = input.trimmingCharacters(in: .whitespacesAndNewlines)
         
         // Remove null bytes and other control characters (except newlines and tabs which are OK in instructions)
@@ -168,9 +138,7 @@ class RecipeURLSharing {
         return sanitized
     }
     
-    /// Validates a shareable recipe
-    /// - Parameter shareableRecipe: The recipe to validate
-    /// - Throws: RecipeSharingError if validation fails
+
     private static func validate(_ shareableRecipe: ShareableRecipe) throws {
         // Validate name
         guard !shareableRecipe.name.isEmpty else {
@@ -211,7 +179,6 @@ class RecipeURLSharing {
         }
     }
     
-    // MARK: - Error Types
     
     enum RecipeSharingError: LocalizedError {
         case invalidScheme

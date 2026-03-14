@@ -154,8 +154,6 @@ extension Ingredient {
     }
 }
 
-import Foundation
-
 struct PartialIngredient: Codable {
     enum CodingKeys: String, CodingKey {
         case name, unit, amount
