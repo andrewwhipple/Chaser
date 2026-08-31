@@ -31,6 +31,7 @@ struct DetailEditView: View {
     @State private var isParsing = false
     @State private var animatePulse = false
     @State private var parsingError: ErrorWrapper?
+    @State private var isRefreshingModel = false
     
     @AppStorage("isAutomaticParsingSectionExpanded") private var isAutomaticParsingSectionExpanded = true
     @AppStorage("showAutomaticParsing") private var showAutomaticParsing = true
@@ -207,22 +208,42 @@ struct DetailEditView: View {
                     }
                     if recipeParser.instance?.loaded == false {
                         switch recipeParser.instance?.availability {
-                        case .appleIntelligenceNotEnabled:
-                            Text("To use automatic parsing, please enable Apple Intelligence in Settings. It may take up to a few minutes for parsing to be available after enabling.")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
                         case .deviceNotEligible:
                             Text("Apple Intelligence is not available on this device.")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                        case .modelNotReady:
-                            Text("Automatic parsing not ready yet; please wait or try again.")
+                            Toggle("Hide automatic parsing", isOn: Binding<Bool>(
+                                get: { !showAutomaticParsing },
+                                set: { showAutomaticParsing = !$0 }
+                            ))
+                        case .appleIntelligenceNotEnabled, .modelNotReady:
+                            Text("To use automatic parsing, please enable Apple Intelligence for your device in Settings. If you've already enabled it, it may take several minutes for Apple Intelligence to become available after enabling, and your device may require you to be on Wi-Fi and/or connected to power to download Apple Intelligence models. You can check the latest Apple Intelligence status in Settings, including whether it is enabled and whether models are currently downloading.")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
+                            Button {
+                                Task {
+                                    isRefreshingModel = true
+                                    await recipeParser.checkAndReload()
+                                    try? await Task.sleep(nanoseconds: 5_000_000_000)
+                                    isRefreshingModel = false
+                                }
+                            } label: {
+                                if isRefreshingModel {
+                                    ProgressView().progressViewStyle(.circular)
+                                } else {
+                                    Text("Check if Apple Intelligence is ready")
+                                }
+                            }
+                            .buttonStyle(.bordered)
+                            .disabled(isRefreshingModel)
                         case .unavailable:
                             Text("Automatic parsing is unavailable due to an unknown error.")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
+                            Toggle("Hide automatic parsing", isOn: Binding<Bool>(
+                                get: { !showAutomaticParsing },
+                                set: { showAutomaticParsing = !$0 }
+                            ))
                         default:
                             EmptyView()
                         }
@@ -327,6 +348,7 @@ struct DetailEditView: View {
         }
     }
 }
+
 
 struct DetailEditView_Previews: PreviewProvider {
     static var previews: some View {

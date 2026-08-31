@@ -1,0 +1,131 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "F639317F",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "6759465623",
+      "localizations" : [
+        {
+          "description" : "Unlock original cocktail recipes and common formulas",
+          "displayName" : "Bonus Recipes",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "bonus_recipes__ccc39947_ba76_4f1c_90e2_2fdecd63f705",
+      "referenceName" : "Bonus Recipes",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "6759466756",
+      "localizations" : [
+        {
+          "description" : "Change your icon to match your favorite cocktail",
+          "displayName" : "Custom Icons",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "custom_icon__7bf84ab8_4d2c_4e75_a94d_e5e185726fc5",
+      "referenceName" : "Custom Icons",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "6759466030",
+      "localizations" : [
+        {
+          "description" : "Like Chaser and want to support us? Leave a tip!",
+          "displayName" : "Tip the Bartender",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "tip__6f71ea4b_f575_485d_a500_481b4a1163f8",
+      "referenceName" : "Tip the Bartender",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6758681238",
+    "_askToBuyEnabled" : false,
+    "_billingGracePeriodEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_developerTeamID" : "XYD8H2TPW6",
+    "_disableDialogs" : false,
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 794444097.14046502,
+    "_locale" : "en_US",
+    "_renewalBillingIssuesEnabled" : false,
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ],
+    "_timeRate" : 0
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}
